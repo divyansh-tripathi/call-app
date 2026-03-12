@@ -1,78 +1,90 @@
+let form = document.querySelector("form");
+let closeBtn = document.querySelector(".close button");
+let add = document.querySelector(".add");
+let upBtn = document.querySelector(".up");
+let downBtn = document.querySelector(".down");
+let card = document.querySelector(".call3");
 
+let users = JSON.parse(localStorage.getItem("user")) || [];
+let currentIndex = users.length - 1;
 
-        let form = document.querySelector("form")
-        let closeBtn = document.querySelector(".close button")
-        let add = document.querySelector(".add")
-        let upBtn = document.querySelector(".up")
-        let downBtn = document.querySelector(".down")
-        let card = document.querySelector(".call3")
+function showNoData() {
+  card.innerHTML = "<h2>No user data</h2>";
+}
 
-        let users = JSON.parse(localStorage.getItem("user")) || []
-        let currentIndex = users.length - 1
+closeBtn.addEventListener("click", function (e) {
+  e.preventDefault();
+  form.style.display = "none";
+});
 
-        function showNoData() {
-            card.innerHTML = "<h2>No user data</h2>"
-        }
+add.addEventListener("click", function (e) {
+  e.preventDefault();
+  form.style.display = "flex";
+});
 
-        closeBtn.addEventListener("click", function (e) {
-            e.preventDefault()
-            form.style.display = "none"
-        })
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
 
-        add.addEventListener("click", function (e) {
-            e.preventDefault()
-            form.style.display = "flex"
-        })
+  let name = form.querySelectorAll("input")[0].value.trim();
+  let email = form.querySelectorAll("input")[1].value.trim();
+  let phone = form.querySelectorAll("input")[2].value.trim();
+  let img = form.querySelectorAll("input")[3].value.trim();
 
-        form.addEventListener("submit", function (e) {
+  let gender = document.querySelector('input[name="gender"]:checked')?.value;
 
-            e.preventDefault()
+  if (name === "") {
+    alert("enter name");
+    return;
+  }
+  if (email === "") {
+    alert("enter email");
+    return;
+  }
+  if (phone === "") {
+    alert("enter phone");
+    return;
+  }
+  if (img === "") {
+    alert("enter image link");
+    return;
+  }
+  if (!gender) {
+    alert("select gender");
+    return;
+  }
 
-            let name = form.querySelectorAll("input")[0].value.trim()
-            let email = form.querySelectorAll("input")[1].value.trim()
-            let phone = form.querySelectorAll("input")[2].value.trim()
-            let img = form.querySelectorAll("input")[3].value.trim()
+  let newUser = {
+    name: name,
+    email: email,
+    phone: phone,
+    img: img,
+    gender: gender,
+  };
 
-            let gender = document.querySelector('input[name="gender"]:checked')?.value
+  users.push(newUser);
 
-            if (name === "") { alert("enter name"); return }
-            if (email === "") { alert("enter email"); return }
-            if (phone === "") { alert("enter phone"); return }
-            if (img === "") { alert("enter image link"); return }
-            if (!gender) { alert("select gender"); return }
+  localStorage.setItem("user", JSON.stringify(users));
 
-            let newUser = {
-                name: name,
-                email: email,
-                phone: phone,
-                img: img,
-                gender: gender
-            }
+  currentIndex = users.length - 1;
 
-            users.push(newUser)
+  showUser(users[currentIndex]);
 
-            localStorage.setItem("user", JSON.stringify(users))
+  form.querySelectorAll("input")[0].value = "";
+  form.querySelectorAll("input")[1].value = "";
+  form.querySelectorAll("input")[2].value = "";
+  form.querySelectorAll("input")[3].value = "";
 
-            currentIndex = users.length - 1
+  document.querySelectorAll('input[name="gender"]').forEach(function (r) {
+    r.checked = false;
+  });
 
-            showUser(users[currentIndex])
+  toaster("New Contact Added");
 
-            form.querySelectorAll("input")[0].value = ""
-            form.querySelectorAll("input")[1].value = ""
-            form.querySelectorAll("input")[2].value = ""
-            form.querySelectorAll("input")[3].value = ""
+  form.style.display = "none";
+});
 
-            document.querySelectorAll('input[name="gender"]').forEach(function (r) {
-                r.checked = false
-            })
-
-            form.style.display = "none"
-
-        })
-
-        function showUser(user) {
-
-            card.innerHTML = `
+function showUser(user) {
+  card.innerHTML = `
 <img src="${user.img}">
 <h2>${user.name}</h2>
 <p>${user.email}</p>
@@ -83,31 +95,62 @@
 <a href="tel:${user.phone}">Call</a>
 <a href="sms:${user.phone}">Message</a>
 </div>
-`
+`;
+}
 
-        }
+if (users.length > 0) {
+  showUser(users[currentIndex]);
+} else {
+  showNoData();
+}
 
-        if (users.length > 0) {
-            showUser(users[currentIndex])
-        } else {
-            showNoData()
-        }
+upBtn.addEventListener("click", function () {
+  if (currentIndex > 0) {
+    currentIndex--;
+    showUser(users[currentIndex]);
+  }
+});
 
-        upBtn.addEventListener("click", function () {
+downBtn.addEventListener("click", function () {
+  if (currentIndex < users.length - 1) {
+    currentIndex++;
+    showUser(users[currentIndex]);
+  }
+});
+function createToaster(config) {
+  return function (message) {
+    let toast = document.createElement("div");
+    toast.className = "custom-toast";
+    toast.textContent = message;
 
-            if (currentIndex > 0) {
-                currentIndex--
-                showUser(users[currentIndex])
-            }
+    if (config.theme === "dark") {
+      toast.style.background = "#1f2937";
+      toast.style.color = "white";
+    }
 
-        })
+    toast.style[config.positionX] = "20px";
+    toast.style[config.positionY] = "20px";
 
-        downBtn.addEventListener("click", function () {
+    document.body.appendChild(toast);
 
-            if (currentIndex < users.length - 1) {
-                currentIndex++
-                showUser(users[currentIndex])
-            }
+    setTimeout(() => {
+      toast.classList.add("show");
+    }, 10);
 
-        })
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.classList.add("hide");
 
+      setTimeout(() => {
+        toast.remove();
+      }, 400);
+    }, config.duration * 1000);
+  };
+}
+
+const toaster = createToaster({
+  positionX: "right",
+  positionY: "top",
+  theme: "light",
+  duration: 3,
+});
